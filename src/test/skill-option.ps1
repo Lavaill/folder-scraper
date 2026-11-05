@@ -29,6 +29,7 @@ try {
         $plainOutput = [System.IO.File]::ReadAllText($outputFile)
         Assert ($plainOutput.Contains("object Example")) "Default output is missing project content"
         Assert (-not $plainOutput.Contains("Path: SKILL.md")) "Default output unexpectedly contains the skill"
+        Assert (-not $plainOutput.Contains("INSTRUCTIONS REMINDER")) "Default output unexpectedly contains the reminder"
 
         $variants = @(
             @("-s", $inputDir, $outputFile),
@@ -36,9 +37,13 @@ try {
             @($inputDir, $outputFile, "-S")
         )
         foreach ($arguments in $variants) {
-            & java -jar $jarPath @arguments
+            $console = & java -jar $jarPath @arguments | Out-String
             Assert ($LASTEXITCODE -eq 0) "Skill invocation failed: $arguments"
+            Assert ($console.Contains("Suggested first chat message:")) "Suggested chat message was not printed"
             $output = [System.IO.File]::ReadAllText($outputFile)
+            $summaryIndex = $output.IndexOf("END EXPORT SUMMARY", [System.StringComparison]::Ordinal)
+            $reminderIndex = $output.IndexOf("INSTRUCTIONS REMINDER", [System.StringComparison]::Ordinal)
+            Assert ($summaryIndex -ge 0 -and $reminderIndex -gt $summaryIndex) "Reminder is missing or not at the end of the export"
             Assert ($output.StartsWith("==================== FILE START ====================" + [Environment]::NewLine + "Path: SKILL.md")) "Skill is not at the start of the export"
             $previous = -1
             foreach ($path in $resourcePaths) {

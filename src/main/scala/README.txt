@@ -5,8 +5,13 @@ java -jar FolderScraper.jar -s <input_directory> <output_file>
 
 -s (or -S) prepends the bundled SKILL.md and its three reference files to the
 project export. The option may appear before, between, or after the paths.
-Exports with the option are written in UTF-8; without it, the export contains
-only the project files and uses the existing platform-default encoding.
+With the option, a short reminder of the instructions is also appended to the
+end of the export, and a suggested first chat message is printed. Start the
+chat with that message so the model applies the instructions.
+Project files are read as UTF-8 and exports are written as UTF-8, regardless
+of the system's default encoding. Files that are not valid UTF-8 are reported
+as read failures instead of being silently converted.
+Without the option, the export contains only the project files.
 
 Project files are sorted by relative path, with an index before their contents
 and a summary at the end. The skill, when requested, remains first.

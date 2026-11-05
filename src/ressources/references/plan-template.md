@@ -1,30 +1,32 @@
-# Review plan template
+<!--
+Omit inapplicable sections.
+State each requirement once.
+Do not reproduce these instructions. Size budgets are in SKILL.md.
+-->
 
-## Verified current behavior
-- [Only facts evidenced by the export]
+# Review plan
 
-## Approved target behavior
-- [Acceptance criteria and exact boundaries]
+## Current behavior
+- [Only verified facts that explain the requested change]
+
+## Target behavior
+- [Exact observable outcomes and boundaries]
 
 ## Proposed changes
-1. `<path>`: `<class/object/trait>`
-   - Change: [member-level description]
-   - Reason: [ticket-specific reason]
-   - Tests: [affected tests]
+1. `<path>` | `<class/object/trait>` | `<method/member>`
+   - Change: [required behavioral modification]
+   - Tests: [test class and essential cases]
 
-## Configuration contract
-- Key: `[exact key]`
-- Default/unit: `[value and unit]`
-- Agent constraint: the implementation agent cannot inspect or modify the protected property file.
-- Manual user action: add `[exact line]` to `[file, usually application.properties]`.
+[Repeat only for files that must change.]
 
-## Tests
-- [Boundary, error mapping, non-invocation, regression cases]
-
-## Do not change
-- [Relevant files/components intentionally unaffected]
+## Configuration
+[Include only if configuration changes. State the exact key, value/unit,
+agent constraint, and manual user action.]
 
 ## Risks or unresolved items
-- [None, or explicit decisions still required]
+[Include only genuine unresolved decisions or operational risks. Omit if none.]
 
-End with: `Please approve or correct this plan. I will produce the copy-pastable implementation-agent handoff only after approval.`
+## Intentionally unchanged
+[Include only components an agent is likely to modify incorrectly. Omit otherwise.]
+
+Please approve or correct this plan. I will produce the copy-pastable implementation-agent handoff only after approval.

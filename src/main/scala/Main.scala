@@ -1,5 +1,5 @@
 import java.io.{BufferedWriter, File, IOException}
-import java.nio.charset.{Charset, StandardCharsets}
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import scala.io.Source
 import scala.util.{Failure, Success, Try, Using}
@@ -11,6 +11,17 @@ object Main {
         "references/plan-template.md",
         "references/handoff-template.md"
     )
+
+    private val instructionsReminder: String =
+        """|==================== INSTRUCTIONS REMINDER ====================
+           |The instructions at the top of this file (SKILL.md and references/*) remain in force for every request in this conversation.
+           |- Deliver a plan first (references/plan-template.md). Ask questions only for material ambiguities.
+           |- Only after the user explicitly approves the plan, deliver the handoff: one sentence, then one fenced block using the headings of references/handoff-template.md, with nothing after the block and no links or references to this file.
+           |- You produce plans and handoffs, not the implementation.
+           |================== END INSTRUCTIONS REMINDER ==================""".stripMargin
+
+    private val suggestedMessage: String =
+        "Follow the instructions in SKILL.md at the top of the attached file. Produce a plan first, then the handoff only after I approve the plan. My ticket: <paste ticket>"
 
     private def readSkillResources(): List[(String, String)] = {
         skillResources.map { path =>
@@ -75,9 +86,8 @@ object Main {
                 val relativePath = inputDir.toPath.relativize(file.toPath).toString
                 relativePath -> file
             }.sortBy(_._1)
-            val charset = if (skillFlags == 1) StandardCharsets.UTF_8 else Charset.defaultCharset()
             var failedFiles = 0
-            Using.resource(Files.newBufferedWriter(outputFile.toPath, charset)) { writer =>
+            Using.resource(Files.newBufferedWriter(outputFile.toPath, StandardCharsets.UTF_8)) { writer =>
                 skillContents.foreach { case (path, content) => writeFile(writer, path, content) }
 
                 writeLine(writer, "==================== PROJECT FILE INDEX ====================")
@@ -88,7 +98,7 @@ object Main {
 
                 files.foreach { case (relativePath, file) =>
                     val content = try {
-                        Right(Using.resource(Source.fromFile(file))(_.getLines().mkString("\n")))
+                        Right(Using.resource(Source.fromFile(file, "UTF-8"))(_.getLines().mkString("\n")))
                     } catch {
                         case e: IOException => Left(e)
                         case e: SecurityException => Left(e)
@@ -107,6 +117,10 @@ object Main {
                 writeLine(writer, s"Files exported: ${files.size - failedFiles}")
                 writeLine(writer, s"Files failed: $failedFiles")
                 writeLine(writer, "================== END EXPORT SUMMARY ==================")
+                if (skillFlags == 1) {
+                    writeLine(writer, "")
+                    writeLine(writer, instructionsReminder)
+                }
             }
 
             if (failedFiles > 0) {
@@ -114,6 +128,10 @@ object Main {
                 sys.exit(1)
             }
             println(s"Project files written to ${outputFile.getAbsolutePath} (${files.size} file(s))")
+            if (skillFlags == 1) {
+                println("Suggested first chat message:")
+                println(suggestedMessage)
+            }
         } catch {
             case e: IOException =>
                 System.err.println(s"Export failed: $e")

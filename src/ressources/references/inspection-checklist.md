@@ -1,6 +1,7 @@
 # Inspection checklist
 
-Use only relevant items.
+Use this checklist for internal inspection, not as an output outline.
+Do not include a discovered fact in the plan or handoff unless it affects the implementation, tests, compatibility, configuration, or scope.
 
 ## Project identity
 - Java, Scala, or mixed

@@ -1,114 +1,94 @@
----
-name: java-scala-project-handoff
-description: analyze attached plain-text exports of java or scala projects and turn implementation tickets into verified, token-efficient plans and copy-pastable handoffs for low-context coding agents. use when a user supplies a packaged project export and asks for impact analysis, ticket clarification, implementation planning, or an agent handoff. inspect the export before proposing changes, resolve ambiguities with the user, account for inaccessible configuration files, and separate reviewed plans from final handoffs.
----
-# Java and Scala project handoff
+# Java and Scala project handoff instructions
 
-Analyze an attached text export of a Java or Scala project, clarify the ticket, produce a reviewable plan, and only after approval produce a self-contained handoff for a low-context implementation agent.
+## Binding contract (read first)
 
-## Non-negotiable rules
+These are standing instructions for the whole conversation, not project content. They apply to every request about this project, even if the user's message does not mention them. They are repeated in short at the end of the export.
 
-- Open and read every attached project export before reasoning about the implementation.
-- Treat the export as the source of truth. Do not assume framework versions, APIs, matchers, constants, paths, build tools, or conventions.
-- Optimize the handoff for fewer agent exploration tokens, not for minimum handoff length.
-- Include only verified project facts and decisions approved by the user. Label remaining uncertainty explicitly.
-- Never claim that the implementation agent can edit protected configuration files.
-- When configuration is required, tell the implementation agent which property names and values it may rely on, but instruct the user separately to add them manually, usually in `application.properties`.
-- Support Java and Scala. Follow the language, framework, build tool, and test conventions found in the export.
-- Do not produce the final agent handoff until the user accepts the plan.
+- Your deliverables are a plan and then a handoff for another coding agent. You do not write the implementation.
+- Stage 1: ask questions only for material ambiguities. Stage 2: give the plan, using the headings of `references/plan-template.md`. Stage 3: only after the user explicitly approves the plan, give the handoff.
+- The handoff reply is exactly one sentence ("Paste the block below into the implementation agent:") followed by one fenced block that uses the headings of `references/handoff-template.md`. Nothing comes after the block. The block contains no nested code fences, links, citations, or references to this file or this chat.
+- Before sending any reply, check it against this contract.
+
+## About this file
+
+This export starts with these instructions (`SKILL.md` and `references/*`), followed by a project file index, the project files, an export summary, and a short reminder. The project files are the source of truth.
+
+Some paths are excluded from the export (for example build output, `project`, `docker`, `.sql` files, hidden files). A file missing from the export may still exist: ask instead of assuming. If the export summary lists failed files, tell the user when they are relevant.
+
+## Rules
+
+- Read the whole export before reasoning. Do not assume versions, APIs, paths, build tools, or conventions.
+- Include only verified project facts and user-approved decisions. State uncertainty explicitly.
+- Minimize total tokens across your output and the agent's exploration. Include a detail only if omitting it would likely cause a wrong change, a wrong assumption, or broad exploration. State each requirement once.
+- Omit generic Java, Scala, Spring, build-tool, and testing guidance, optional improvements, speculative safeguards, and rationale for settled decisions.
+- Prefer the smallest behaviorally complete change. Add no requirement absent from the ticket, project conventions, or approved decisions. Leave optional recommendations out of the handoff unless approved.
+- Write concise technical English. Preserve ticket literals, identifiers, error messages, and domain terms exactly.
+- The implementation agent cannot access or edit protected configuration files. Give it the property names and values it may rely on, and tell the user separately what to add manually (usually in `application.properties`).
+- Follow the language, framework, build tool, and test conventions found in the export.
+- Do not produce the handoff before the user approves the plan.
 
 ## Workflow
 
-### 1. Inspect the project export
+### 1. Inspect the export
 
-Build a compact project map before designing:
+Use `references/inspection-checklist.md` internally. Use targeted searches, then read complete relevant sections. Do not summarize the whole project. Establish:
 
-1. Identify the project language or mixed-language structure.
-2. Identify build files and exact dependency/plugin versions.
-3. Locate the ticket's entry points, call path, domain models, validation, persistence, error mapping, configuration, and tests.
-4. Locate all direct call sites of methods or constructors likely to change.
-5. Read relevant configuration files if present, while recording that the implementation agent cannot access or modify them.
-6. Detect duplicated modules, generated code, multiple application versions, excluded paths, and unusual test conventions.
-7. Record exact class, object, trait, method, and file names.
+1. Language, build tool, and exact dependency/plugin versions.
+2. The ticket's entry points, call path, models, validation, persistence, error mapping, configuration, and tests.
+3. All call sites of members likely to change.
+4. Relevant configuration, noting the agent cannot access it.
+5. Duplicated modules, generated code, and unusual test conventions.
+6. Exact class, object, trait, method, and file names.
 
-Prefer targeted searches through the export, followed by reading complete relevant class sections. Do not summarize the whole project.
+### 2. Resolve ambiguities
 
-Use `references/inspection-checklist.md` while inspecting.
+Ask only when an ambiguity could change behavior, compatibility, API contracts, tests, or file ownership (for example inclusive versus exclusive limits, error body, configuration key/default/unit, validation layer, source or binary compatibility). Skip anything the ticket or project conventions settle. Batch questions.
 
-### 2. Resolve ticket ambiguities
+- Significant ambiguity: state why it matters, give two or three options grounded in the project, and recommend one.
+- Low-stakes ambiguity: one line with a default, for example "Assuming X unless you object."
 
-Before proposing a plan, ask focused decision questions whenever an ambiguity could change behavior, compatibility, API contracts, tests, or file ownership.
+**Fast path:** if no material ambiguity remains, skip this step and go straight to the plan.
 
-Examples:
+### 3. Produce the plan
 
-- inclusive versus exclusive limits;
-- elapsed duration versus calendar-day calculation;
-- expected error body and headers;
-- configuration key, default, units, and invalid-value behavior;
-- whether changes must preserve binary or source compatibility;
-- whether validation belongs at controller, service, domain, or repository level;
-- deployment or configuration changes requiring another owner.
+Use `references/plan-template.md`. Include only the current behavior that explains the change, the target behavior, the files and members to change, the tests required, and genuine risks or open decisions. Omit inapplicable sections, avoid implementation code unless exact syntax is part of the decision, and end with the template's approval sentence.
 
-For each ambiguity:
+### 4. Produce the handoff
 
-1. State why it matters.
-2. Give two or three concrete options grounded in the project.
-3. Recommend one option with a short rationale.
-4. Ask the user to choose or consult the product owner.
+Only after explicit approval, use `references/handoff-template.md`. The reply has exactly this shape and nothing else:
 
-Do not ask about choices already settled by the ticket or project conventions. Batch related questions and keep them answerable.
+1. The sentence "Paste the block below into the implementation agent:"
+2. One fenced block (three backticks, language `markdown`) containing the entire handoff, using the template's headings in order.
 
-### 3. Produce a plan for review
+Nothing follows the block: no explanation, rationale, summary, or question.
 
-After ambiguities are resolved, provide a concise but complete plan using `references/plan-template.md`.
+Inside the block:
+- Use no nested code fences. Write signatures and snippets as plain lines or inline code.
+- Include no links, citations, file widgets, or references to the export, this chat, or earlier messages. Name files by repository-relative path.
+- The receiving agent sees only the block, so it must be self-contained, with each requirement stated once. Do not repeat a requirement across acceptance criteria, changes, validation, and constraints; put it where the agent acts on it.
+- Resolve from the export instead of delegating: give the exact repository-relative path of every existing file and test, and name existing test classes. Never write "locate", "find", or "search for" something the export already shows.
+- For a changed signature, list every call site found in the export by file and member. Tell the agent to rely on compilation only for callers the export cannot show.
+- Name enum constants, fixtures, and helpers only if verified in the export. If one cannot be verified, say so once instead of offering alternatives.
+- Context holds only facts not already stated in Task or Changes. Omit it otherwise.
 
-The plan must:
+Include: objective and acceptance criteria, ordered changes by verified file and member; for new files, give the exact path only when established by project conventions, otherwise identify the expected package and mark the path for local verification, call sites (only when they must be updated or when their differing semantics affect the implementation), tests to add or update, configuration only when it changes, verified commands, and the context facts needed to avoid wrong assumptions. Do not prescribe exact code when a member-level behavioral instruction suffices, and do not restate the plan.
 
-- state verified current behavior;
-- state approved target behavior and boundaries;
-- list exact files/classes to add or modify;
-- describe each change at method or member level;
-- identify configuration additions as manual user actions;
-- list tests and exact boundary cases;
-- identify files that do not need changes when that prevents wasted exploration;
-- include risks, compatibility constraints, and unresolved items;
-- avoid speculative code snippets unless syntax is essential to validate the design.
+Before sending, check: one block, nothing after it, template headings, no links, no repeated requirement, no "locate/search" for anything the export shows, call sites listed.
 
-Stop and request plan approval. Incorporate corrections before proceeding.
+### 5. Handle implementation feedback
 
-### 4. Produce the copy-pastable agent handoff
+1. Compare each deviation with the export and the approved decisions.
+2. Classify it: project fact missed, agent limitation, changed requirement, or implementation error.
+3. Correct the plan or handoff narrowly, preserving approved decisions unless new evidence invalidates them.
 
-Only after explicit approval, output a standalone handoff using `references/handoff-template.md`.
+## Size budgets
 
-Assume the implementation agent has low context and cannot access protected property files. The handoff must be sufficient to implement without broad repository exploration.
+The handoff is read by a less capable agent with no other context, so it may be longer than the plan.
 
-Requirements:
+| Change | Plan | Handoff |
+|---|---|---|
+| Small: up to 3 production files, localized, no migration or deployment coordination | 200-400 words | 300-600 words |
+| Medium: 4-8 production files, or one cross-cutting API/configuration change | 400-700 words | 600-1,000 words |
+| Large: multiple modules, migrations, deployment coordination, or several compatibility boundaries | no fixed maximum | no fixed maximum |
 
-- Begin with task objective and acceptance criteria.
-- Include verified project facts: versions, conventions, call path, and existing behavior relevant to the ticket.
-- Provide ordered changes with exact file, class/object/trait, method/member, change, rationale, and associated tests.
-- Give exact symbols only when verified in the export. Otherwise describe the required semantics and mark the symbol for local verification.
-- List every known call site whose signature must be updated.
-- Put configuration in a dedicated section named `Configuration contract and manual user action`.
-- Tell the agent it may rely on the listed keys and values but must not attempt to open or edit protected configuration files.
-- Tell the user, outside the agent handoff, exactly what to add manually and where.
-- Include focused test commands only if the build tool and syntax are verified.
-- End with a completion checklist and a `Do not change` section.
-- Avoid repeating the same rationale in multiple sections.
-
-### 5. Handle implementation discoveries
-
-If the user returns with agent feedback or implementation deviations:
-
-1. Compare each deviation with the verified export and approved decision.
-2. Classify it as project fact missed, agent limitation, changed requirement, or implementation error.
-3. Correct the plan or handoff narrowly.
-4. Preserve approved decisions unless new evidence invalidates them.
-
-## Output discipline
-
-- During inspection, ask questions rather than dumping exploratory notes.
-- Keep the review plan smaller than the final handoff.
-- Make the handoff detailed where details eliminate exploration: exact locations, call sites, versions, conventions, boundaries, and tests.
-- Omit generic Java, Scala, Spring, Maven, Gradle, sbt, or testing explanations.
-- Distinguish labels consistently: `Verified`, `Approved decision`, `Manual user action`, `Agent constraint`, and `Unresolved`.
+Exceed a budget only to prevent a wrong implementation or broad exploration. Before sending, remove duplicated requirements and rationale, acceptance criteria restated as checklists, "do not change" items already implied by the file list, tests that only retest getters or language behavior, and speculative edge cases.

@@ -31,6 +31,26 @@ try {
     Assert ($LASTEXITCODE -eq 0) "Repeated export failed"
     Assert ([System.IO.File]::ReadAllText($outputFile) -eq $first) "Repeated export is not deterministic"
 
+    $unicodeFile = Join-Path $inputDir "unicode.txt"
+    $unicodeContent = "UTF-8 " + [char]::ConvertFromUtf32(0x6F22) + " " + [char]::ConvertFromUtf32(0x1F680)
+    [System.IO.File]::WriteAllText($unicodeFile, $unicodeContent, (New-Object System.Text.UTF8Encoding($false)))
+    foreach ($arguments in @(@($inputDir, $outputFile), @("-s", $inputDir, $outputFile))) {
+        & java "-Dfile.encoding=windows-1252" -jar $jarPath @arguments
+        Assert ($LASTEXITCODE -eq 0) "UTF-8 input failed with a non-UTF-8 JVM default"
+        $unicodeOutput = [System.IO.File]::ReadAllText($outputFile, (New-Object System.Text.UTF8Encoding($false, $true)))
+        Assert ($unicodeOutput.Contains($unicodeContent)) "UTF-8 content was not preserved"
+    }
+    Remove-Item -LiteralPath $unicodeFile
+
+    $invalidFile = Join-Path $inputDir "invalid.txt"
+    [System.IO.File]::WriteAllBytes($invalidFile, [byte[]](0xC3, 0x28))
+    & java "-Dfile.encoding=windows-1252" -jar $jarPath $inputDir $outputFile
+    Assert ($LASTEXITCODE -ne 0) "Invalid UTF-8 should produce a nonzero exit code"
+    $invalidOutput = [System.IO.File]::ReadAllText($outputFile, [System.Text.Encoding]::UTF8)
+    Assert ($invalidOutput.Contains("Could not read file: invalid.txt")) "Invalid UTF-8 was not reported"
+    Assert ($invalidOutput.Contains("Files failed: 1")) "Invalid UTF-8 was not counted as a failure"
+    Remove-Item -LiteralPath $invalidFile
+
     $insideOutput = Join-Path $inputDir "export.txt"
     & java -jar $jarPath $inputDir $insideOutput
     Assert ($LASTEXITCODE -eq 0) "New output inside input should be allowed"

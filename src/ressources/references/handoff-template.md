@@ -1,63 +1,44 @@
-# Copy-pastable implementation-agent handoff
+<!--
+Reply with the sentence below, then the fenced block below filled in, and nothing else after the block.
+Keep the headings and their order. Omit inapplicable sections.
+State each requirement once. No nested code fences, links, or citations inside the block.
+Do not reproduce these instructions. Size budgets are in SKILL.md.
+-->
 
-## Objective
-[One precise paragraph]
+Paste the block below into the implementation agent:
+
+```markdown
+## Task
+[One precise paragraph stating the objective and scope.]
 
 ## Acceptance criteria
-- [Observable outcomes]
+- [Observable outcome]
+- [Exact literals, boundaries, or compatibility requirement]
 
-## Verified project context
-- Language/build/framework versions: [exact]
-- Relevant call path: `[entry] -> [service] -> [validation] -> [downstream]`
-- Existing error/config/test conventions: [ticket-relevant facts]
+## Context
+[Include only facts that prevent a wrong assumption or exploration: framework and library versions, test framework and naming conventions, relevant call path. Omit if none.]
 
-## Approved decisions
-- [Decision and exact semantics]
+## Changes
 
-## Agent constraints
-- Do not attempt to inspect or edit protected configuration files.
-- Use the configuration contract below as authoritative.
-- Do not replace verified project APIs with newer framework conveniences.
-- Limit exploration to the listed files and call sites unless compilation reveals an unlisted dependency.
+### 1. `<exact repository-relative path>` | `<class/object/trait>` | `<method/member>`
+- [Exact required modification]
+- Call sites: [list each affected caller by file and member; omit if the signature is unchanged]
+- Tests: [specific test additions or updates]
 
-## Configuration contract and manual user action
-### Values the agent may rely on
-- `[key]`: `[default, unit, semantics]`
+[Repeat for each changed file.]
 
-### Agent responsibility
-- Wire and consume the property in code and tests as described.
-- Do not edit the protected property file.
+## Configuration
+[Include only if applicable. Separate agent responsibility from manual user action.]
 
-### Manual user action
-- The user will add this line to `[application.properties or verified file]`:
-  `[exact property line]`
+## Validation
+- [Verified focused or full command]
+- [Any required compile/search check not already covered by the build]
 
-## Ordered implementation changes
-### 1. `[path]` | `[class/object/trait]`
-- Location: `[method/member]`
-- Change: [exact behavioral modification]
-- Rationale: [one sentence]
-- Call sites to update: [exhaustive verified list]
-- Tests: [specific tests]
+## Constraints
+- [Only ticket-specific exclusions or protected-file constraints]
 
-[Repeat without duplicating rationale]
-
-## Test matrix
-- [input/boundary] -> [expected behavior/status/exception]
-- [invalid input] -> [expected behavior]
-- [rejected request] -> [downstream collaborator not invoked]
-
-## Verified commands
-- `[focused command]`
-- `[full command]`
-
-Omit this section if commands were not verified.
-
-## Do not change
-- [Explicit exclusions]
-
-## Completion checklist
-- [ ] [Requirement]
-- [ ] Protected configuration file was not edited by the agent.
-- [ ] All listed call sites compile.
-- [ ] Focused and full tests pass.
+## Report back
+- Files changed
+- Test command and result
+- Any deviation or unresolved compilation issue
+```

@@ -3,7 +3,7 @@ import java.io.File
 object FileWalker {
 
     private val excludedDirs = Set(".git", "target", "build", "out", ".idea", ".vscode", "null", "project", "docker", ".mvn", "mvnw")
-    private val excludedExtensions = Set("class", "jar", "log", "iml", "DS_Store", "gitignore", "mvnw", "dockerfile", "sql", "cmd")
+    private val excludedExtensions = Set("class", "jar", "log", "iml", "DS_Store", "gitignore", "mvnw", "dockerfile", "sql", "cmd", "png", "jpg", "svg")
     private val excludedNames = Set("CHANGELOG", ".gitlab-ci")
 
     def getValidFiles(root: File): List[File] = {
